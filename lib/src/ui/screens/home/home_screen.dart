@@ -1,4 +1,5 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
@@ -6,6 +7,7 @@ import 'package:studing_test_project/src/model/models/carousel_post/carousel_pos
 import 'package:studing_test_project/src/model/models/carousel_post/carousel_video.dart';
 import 'package:studing_test_project/src/ui/screens/home/home_view_model.dart';
 import 'package:studing_test_project/src/ui/ui_extensions.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import 'home_bloc.dart';
 
@@ -17,6 +19,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreen extends State<HomeScreen> {
   final CarouselController _controller = CarouselController();
   final CarouselController _controllerPosts = CarouselController();
+
+  YoutubePlayerController _youTubeController = YoutubePlayerController(
+    initialVideoId: 'dEqT3pfNpXk',
+    flags: YoutubePlayerFlags(
+      autoPlay: true,
+      mute: true,
+    ),
+  );
 
   int _current = 0;
   int _currentPosts = 0;
@@ -35,19 +45,30 @@ class _HomeScreen extends State<HomeScreen> {
           appBar: AppBar(),
           body: Column(
             children: [
+              // _getImgContainer(ImagePost(
+              //     "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg",
+              //     DateTime.now(),
+              //     Icons.add,
+              //     "#taga",
+              //     "Qwqerwelkh sdflksdl;fslf l;sdf ls;dflsd;fks;lfk dfs;fks;lsdf agjkgjk kajg hajkhgajk hgaejkhfgajkhjkas rkjgh ")),
               const SizedBox(height: 16),
               StreamBuilder<List<VideoPost>>(
                   stream: bloc.videoFirstCarousel,
                   builder: (context, data) {
-                    return _showVideoCarouselOrProgress(data);
+                    return _showVideoCarouselOrProgress(
+                        data, _controller, _current, (index, reason) {
+                      setState(() {
+                        _current = index;
+                      });
+                    });
                   }),
               const SizedBox(height: 16),
-              StreamBuilder(
-                  stream: bloc.videoSecondCarousel,
-                  builder: (context, data) {
-                    return _showVideoCarouselOrProgress(data);
-                  }),
-              const SizedBox(height: 16),
+              // StreamBuilder(
+              //     stream: bloc.videoSecondCarousel,
+              //     builder: (context, data) {
+              //       return _showVideoCarouselOrProgress(data);
+              //     }),
+              // const SizedBox(height: 16),
               StreamBuilder<List<ImagePost>>(
                 stream: bloc.imageCarousel,
                 builder: (context, data) {
@@ -65,19 +86,29 @@ class _HomeScreen extends State<HomeScreen> {
     );
   }
 
-  Widget _showVideoCarouselOrProgress(dynamic data) {
+  Widget _showVideoCarouselOrProgress(
+    dynamic data,
+    CarouselController controller,
+    int index,
+    Function(int, CarouselPageChangedReason) onPageChanged,
+  ) {
     if (data.data != null) {
-      return _getVideoPosts(data.data!);
+      return _getVideoPosts(data.data!, controller, index, onPageChanged);
     } else {
       return _getCarouselProgress();
     }
   }
 
   Widget _getImgPosts(List<ImagePost> items) {
-    return CarouselSlider(
-      items: items.map((e) => _getImgContainer(e)).toList(),
+    return CarouselSlider.builder(
+      itemBuilder: (context, index, realIndex) {
+        return _getImgContainer(items[realIndex]);
+      },
+      itemCount: items.length,
       carouselController: _controllerPosts,
       options: CarouselOptions(
+        aspectRatio: 1.5,
+        viewportFraction: 0.7,
         autoPlay: false,
         enableInfiniteScroll: false,
         enlargeCenterPage: false,
@@ -91,44 +122,69 @@ class _HomeScreen extends State<HomeScreen> {
   }
 
   Widget _getImgContainer(ImagePost post) {
-    return Container(
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      margin: EdgeInsets.symmetric(horizontal: 8),
       child: Column(
+        mainAxisSize: MainAxisSize.max,
         children: [
-          Image.network(post.url),
-          Row(
-            children: [
-              Icon(post.tagIcon),
-              Text(post.tag),
-            ],
+          ClipRRect(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(8),
+            ),
+            child: Image.network(post.url, fit: BoxFit.fill, height: 150),
           ),
-          Text(post.time.formattedDateTime()),
-          Text(post.text),
+          Padding(
+            padding: EdgeInsets.only(top: 4, left: 8, right: 8, bottom: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Icon(post.tagIcon, color: Colors.deepOrangeAccent),
+                    const SizedBox(width: 4),
+                    Text(post.tag),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  post.time.formattedDateTime(),
+                  style: TextStyle(color: Colors.grey),
+                ),
+                Text(post.text, maxLines: 3, overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _getVideoPosts(List<VideoPost> items) {
+  Widget _getVideoPosts(
+    List<VideoPost> items,
+    CarouselController controller,
+    int currentIndex,
+    Function(int, CarouselPageChangedReason) onPageChanged,
+  ) {
     return Column(
       children: [
         CarouselSlider(
           items: items.map((e) => _getVideoContainer(e)).toList(),
-          carouselController: _controller,
+          carouselController: controller,
           options: CarouselOptions(
               autoPlay: false,
               enableInfiniteScroll: false,
               enlargeCenterPage: false,
-              onPageChanged: (index, reason) {
-                setState(() {
-                  _current = index;
-                });
-              }),
+              aspectRatio: 24 / 9,
+              onPageChanged: onPageChanged),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: items.asMap().entries.map((entry) {
             return GestureDetector(
-              onTap: () => _controller.animateToPage(entry.key),
+              onTap: () => controller.animateToPage(entry.key),
               child: Container(
                 width: 12.0,
                 height: 12.0,
@@ -138,7 +194,7 @@ class _HomeScreen extends State<HomeScreen> {
                     color: (Theme.of(context).brightness == Brightness.dark
                             ? Colors.white
                             : Colors.deepOrangeAccent)
-                        .withOpacity(_current == entry.key ? 0.9 : 0.4)),
+                        .withOpacity(currentIndex == entry.key ? 0.9 : 0.4)),
               ),
             );
           }).toList(),
@@ -157,7 +213,23 @@ class _HomeScreen extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(16),
             // child: AspectRatio(
             //   aspectRatio: 24 / 9,
-            child: Image.network(post.previewUrl, fit: BoxFit.fill),
+            child: YoutubePlayerBuilder(
+                player: YoutubePlayer(
+                  controller: post.controller,
+                  showVideoProgressIndicator: false,
+                  onReady: () {
+                    post.controller.addListener(() {});
+                  },
+                ),
+                builder: (context, player) => Scaffold(
+                    body: IconButton(
+                        icon: Icon(Icons.play_arrow_rounded),
+                        color: Colors.black,
+                        onPressed: () {
+                          post.controller.value.isPlaying
+                              ? post.controller.pause()
+                              : post.controller.play();
+                        }))),
             // ),
           ),
           Visibility(
@@ -175,7 +247,7 @@ class _HomeScreen extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Care Freedom Plan",
+                    post.title,
                     style: TextStyle(
                       color: Colors.yellow,
                       fontSize: 16,
@@ -185,18 +257,19 @@ class _HomeScreen extends State<HomeScreen> {
                   ),
                   Text(
                     //TODO fix to two lines
-                    "Your investment in good\n health begins here.",
+                    post.description,
                     maxLines: 2,
                     style: TextStyle(color: Colors.white),
                   ),
                   const SizedBox(),
                   Text(
-                    " carē ",
+                    post.botText,
                     style: TextStyle(
-                        color: Colors.blueAccent,
-                        backgroundColor: Colors.yellow,
-                        fontSize: 20,
-                        wordSpacing: 2),
+                      color: Colors.blueAccent,
+                      backgroundColor: Colors.yellow,
+                      fontSize: 20,
+                      wordSpacing: 2,
+                    ),
                   ),
                 ],
               ),

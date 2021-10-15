@@ -1,12 +1,16 @@
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+
 class VideoPost {
-  String videoUrl;
+  String videoId;
   String previewUrl;
   String title;
   String description;
   String botText;
 
+  late YoutubePlayerController controller;
+
   VideoPost(
-    this.videoUrl,
+    this.videoId,
     this.previewUrl,
     this.title,
     this.description,
