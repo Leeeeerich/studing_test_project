@@ -3,11 +3,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
+import 'package:studing_test_project/src/model/constants/Routers.dart';
 import 'package:studing_test_project/src/model/models/carousel_post/carousel_post.dart';
 import 'package:studing_test_project/src/model/models/carousel_post/carousel_video.dart';
 import 'package:studing_test_project/src/ui/screens/home/home_view_model.dart';
 import 'package:studing_test_project/src/ui/ui_extensions.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+
+// import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import 'home_bloc.dart';
 
@@ -20,18 +23,15 @@ class _HomeScreen extends State<HomeScreen> {
   final CarouselController _controller = CarouselController();
   final CarouselController _controllerPosts = CarouselController();
 
-  YoutubePlayerController _youTubeController = YoutubePlayerController(
-    initialVideoId: 'dEqT3pfNpXk',
-    flags: YoutubePlayerFlags(
-      autoPlay: true,
-      mute: true,
-    ),
-  );
-
   int _current = 0;
   int _currentPosts = 0;
 
   late double _screenWidth;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,12 +45,6 @@ class _HomeScreen extends State<HomeScreen> {
           appBar: AppBar(),
           body: Column(
             children: [
-              // _getImgContainer(ImagePost(
-              //     "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg",
-              //     DateTime.now(),
-              //     Icons.add,
-              //     "#taga",
-              //     "Qwqerwelkh sdflksdl;fslf l;sdf ls;dflsd;fks;lfk dfs;fks;lsdf agjkgjk kajg hajkhgajk hgaejkhfgajkhjkas rkjgh ")),
               const SizedBox(height: 16),
               StreamBuilder<List<VideoPost>>(
                   stream: bloc.videoFirstCarousel,
@@ -122,42 +116,48 @@ class _HomeScreen extends State<HomeScreen> {
   }
 
   Widget _getImgContainer(ImagePost post) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      margin: EdgeInsets.symmetric(horizontal: 8),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(8),
-              topRight: Radius.circular(8),
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, Routes.WEB_VIEWER,
+            arguments: {"link", "https://www.flutter.dev/"});
+      },
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        margin: EdgeInsets.symmetric(horizontal: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
+              ),
+              child: Image.network(post.url, fit: BoxFit.fill, height: 150),
             ),
-            child: Image.network(post.url, fit: BoxFit.fill, height: 150),
-          ),
-          Padding(
-            padding: EdgeInsets.only(top: 4, left: 8, right: 8, bottom: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Icon(post.tagIcon, color: Colors.deepOrangeAccent),
-                    const SizedBox(width: 4),
-                    Text(post.tag),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  post.time.formattedDateTime(),
-                  style: TextStyle(color: Colors.grey),
-                ),
-                Text(post.text, maxLines: 3, overflow: TextOverflow.ellipsis),
-              ],
+            Padding(
+              padding: EdgeInsets.only(top: 4, left: 8, right: 8, bottom: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Icon(post.tagIcon, color: Colors.deepOrangeAccent),
+                      const SizedBox(width: 4),
+                      Text(post.tag),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    post.time.formattedDateTime(),
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  Text(post.text, maxLines: 3, overflow: TextOverflow.ellipsis),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -213,33 +213,62 @@ class _HomeScreen extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(16),
             // child: AspectRatio(
             //   aspectRatio: 24 / 9,
-            child: YoutubePlayerBuilder(
-                player: YoutubePlayer(
-                  controller: post.controller,
-                  showVideoProgressIndicator: false,
-                  onReady: () {
-                    post.controller.addListener(() {});
-                  },
-                ),
-                builder: (context, player) => Scaffold(
-                    body: IconButton(
-                        icon: Icon(Icons.play_arrow_rounded),
-                        color: Colors.black,
-                        onPressed: () {
-                          post.controller.value.isPlaying
-                              ? post.controller.pause()
-                              : post.controller.play();
-                        }))),
-            // ),
+            child:
+                // YoutubePlayerControllerProvider(
+                //   controller: post.controller,
+                //   child: LayoutBuilder(
+                //     builder: (context, constraints) {
+                //       return Stack(
+                //         children: [
+                //           SizedBox(
+                //             width: constraints.maxWidth,
+                //             child: YoutubePlayerIFrame(
+                //               controller: post.controller,
+                //               gestureRecognizers: null,
+                //             ),
+                //           ),
+                //         ],
+                //       );
+                //     },
+                //   ),
+                // ),
+
+                YoutubePlayerBuilder(
+                    player: YoutubePlayer(
+                      controller: post.controller,
+                      showVideoProgressIndicator: false,
+                      onReady: () {
+                        // post.controller.addListener(() {});
+                      },
+                    ),
+                    builder: (context, player) => Scaffold(
+                          body: IconButton(
+                              icon: Icon(Icons.play_arrow_rounded),
+                              color: Colors.black,
+                              onPressed: () {
+                                // cc.play();
+                                // post.controller.value.isPlaying
+                                //     ? post.controller.pause()
+                                //     : post.controller.play();
+                              }),
+                        )),
           ),
           Visibility(
+            visible: !post.controller.value.isPlaying,
             child: Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.blueAccent, Colors.transparent],
+                  colors: [
+                    Colors.blue,
+                    "C02196F3".getColor(),
+                    "B02196F3".getColor(),
+                    "A02196F3".getColor(),
+                    Colors.transparent
+                  ],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
+                  stops: [0.1, 0.4, 0.6, 0.8, 1],
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -273,6 +302,22 @@ class _HomeScreen extends State<HomeScreen> {
                   ),
                 ],
               ),
+            ),
+          ),
+          Center(
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                  iconSize: 48,
+                  icon: Icon(Icons.play_arrow),
+                  color: Colors.black,
+                  onPressed: () {
+                    post.controller.value.isPlaying
+                        ? post.controller.pause()
+                        : post.controller.play();
+                  }),
             ),
           ),
         ],

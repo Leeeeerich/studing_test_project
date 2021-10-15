@@ -7,6 +7,7 @@ import 'package:studing_test_project/src/model/repository/repository.dart';
 import 'package:studing_test_project/src/model/repository/repository_impl.dart';
 import 'package:studing_test_project/src/ui/screens/home/home_screen.dart';
 import 'package:studing_test_project/src/ui/screens/splash/splash_screen.dart';
+import 'package:studing_test_project/src/ui/screens/web_viewer/web_viewer_screen.dart';
 import 'package:studing_test_project/src/ui/ui_extensions.dart';
 
 class App extends StatefulWidget {
@@ -38,6 +39,7 @@ class _App extends State<App> {
         routes: {
           Routes.SPLASH: (_) => SplashScreen(),
           Routes.HOME: (_) => HomeScreen(),
+          Routes.WEB_VIEWER: (_) => WebViewerScreen(),
         },
         theme: ThemeData(
           scaffoldBackgroundColor: "F3F3F3".getColor(),

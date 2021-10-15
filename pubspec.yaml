@@ -37,6 +37,8 @@ dependencies:
   intl: any
   carousel_slider: any
   youtube_player_flutter: any
+  youtube_player_iframe: any
+  webview_flutter: any
 
 dev_dependencies:
   flutter_test:

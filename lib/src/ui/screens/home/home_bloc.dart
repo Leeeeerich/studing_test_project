@@ -5,6 +5,8 @@ import 'package:studing_test_project/src/model/models/carousel_post/carousel_pos
 import 'package:studing_test_project/src/model/models/carousel_post/carousel_video.dart';
 import 'package:studing_test_project/src/ui/base_bloc.dart';
 import 'package:studing_test_project/src/ui/screens/home/home_view_model.dart';
+
+// import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class HomeBloc extends BaseBloc {
@@ -20,7 +22,18 @@ class HomeBloc extends BaseBloc {
       event.forEach((element) {
         var con = YoutubePlayerController(
           initialVideoId: element.videoId,
-          flags: YoutubePlayerFlags(mute: true, autoPlay: false),
+          // params: YoutubePlayerParams(
+          //   showControls: false,
+          //   autoPlay: false,
+          //   mute: true,
+          //   showVideoAnnotations: false,
+          //   desktopMode: false,
+          //   enableKeyboard: false,
+          //   enableCaption: false,
+          //   enableJavaScript: false,
+          // ),
+          flags: YoutubePlayerFlags(
+              mute: true, autoPlay: false, hideControls: true),
         );
         youtubeControllers[element.videoId] = con;
         element.controller = con;
