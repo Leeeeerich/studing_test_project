@@ -39,6 +39,7 @@ dependencies:
   youtube_player_flutter: any
   youtube_player_iframe: any
   webview_flutter: any
+  flutter_webview_plugin: any
 
 dev_dependencies:
   flutter_test:

@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:studing_test_project/src/model/constants/Routers.dart';
+import 'package:studing_test_project/src/model/models/args.dart';
 import 'package:studing_test_project/src/model/models/carousel_post/carousel_post.dart';
 import 'package:studing_test_project/src/model/models/carousel_post/carousel_video.dart';
 import 'package:studing_test_project/src/ui/screens/home/home_view_model.dart';
 import 'package:studing_test_project/src/ui/ui_extensions.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-
-// import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import 'home_bloc.dart';
 
@@ -119,7 +118,7 @@ class _HomeScreen extends State<HomeScreen> {
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(context, Routes.WEB_VIEWER,
-            arguments: {"link", "https://www.flutter.dev/"});
+            arguments: WebLink("https://www.flutter.dev"));
       },
       child: Card(
         elevation: 4,
