@@ -248,20 +248,14 @@ class HomeScreen extends StatelessWidget {
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    Colors.blue,
-                    "C02196F3".getColor(),
-                    "B02196F3".getColor(),
-                    "A02196F3".getColor(),
-                    Colors.transparent
-                  ],
+                  colors: [Colors.blue, Colors.transparent],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
-                  stops: [0.1, 0.4, 0.6, 0.8, 1],
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
