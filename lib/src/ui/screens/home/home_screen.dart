@@ -71,7 +71,7 @@ class HomeScreen extends StatelessWidget {
                     stream: bloc.imageCarousel,
                     builder: (context, data) {
                       if (data.data != null) {
-                        return _getImgPosts(bloc, data.data!);
+                        return _getImgPosts(context, bloc, data.data!);
                       } else {
                         return _getCarouselProgress();
                       }
