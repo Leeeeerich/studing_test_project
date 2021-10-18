@@ -219,97 +219,91 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _getVideoContainer(HomeBloc bloc, VideoPost post) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 4),
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: YoutubePlayerBuilder(
-              // onEnterFullScreen: () {
-              //   SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-              // },
-              onExitFullScreen: () {
-                SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-              },
-              player: YoutubePlayer(
-                controller: post.controller,
-                showVideoProgressIndicator: false,
-                onReady: () {},
-              ),
-              builder: (context, player) => Scaffold(
-                body: const SizedBox(),
-              ),
-            ),
-          ),
-          Visibility(
-            visible: post.isShowInfo,
-            child: Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blue, Colors.transparent],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
+    return GestureDetector(
+      onTapUp: (details) {
+        if (post.controller.value.isReady) {
+          bloc.playStop(post);
+        } else {
+          "Video not ready yet!".showToast();
+        }
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 4),
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: YoutubePlayerBuilder(
+                // onEnterFullScreen: () {
+                //   SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+                // },
+                onExitFullScreen: () {
+                  SystemChrome.setPreferredOrientations(
+                      DeviceOrientation.values);
+                },
+                player: YoutubePlayer(
+                  controller: post.controller,
+                  showVideoProgressIndicator: false,
+                  onReady: () {},
                 ),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    post.title,
-                    style: TextStyle(
-                      color: Colors.yellow,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  Text(
-                    //TODO fix to two lines
-                    post.description,
-                    maxLines: 2,
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  const SizedBox(),
-                  Text(
-                    post.botText,
-                    style: TextStyle(
-                      color: Colors.blueAccent,
-                      backgroundColor: Colors.yellow,
-                      fontSize: 20,
-                      wordSpacing: 2,
-                    ),
-                  ),
-                ],
+                builder: (context, player) => Scaffold(
+                  body: const SizedBox(),
+                ),
               ),
             ),
-          ),
-          Visibility(
-            visible: post.isShowInfo,
-            child: Center(
+            Visibility(
+              visible: post.isShowInfo,
               child: Container(
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [Colors.blue, Colors.transparent],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: IconButton(
-                  iconSize: 48,
-                  icon: Icon(Icons.play_arrow),
-                  color: Colors.black,
-                  onPressed: () {
-                    if (post.controller.value.isReady) {
-                      bloc.playStop(post);
-                    } else {
-                      "Video not ready yet!".showToast();
-                    }
-                  },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      post.title,
+                      style: TextStyle(
+                        color: Colors.yellow,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    Text(
+                      //TODO fix to two lines
+                      post.description,
+                      maxLines: 2,
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    const SizedBox(),
+                    Text(
+                      post.botText,
+                      style: TextStyle(
+                        color: Colors.blueAccent,
+                        backgroundColor: Colors.yellow,
+                        fontSize: 20,
+                        wordSpacing: 2,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ),
-        ],
+            Visibility(
+              visible: post.isShowInfo,
+              child: Center(
+                child: Icon(Icons.play_arrow, color: Colors.black, size: 48),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

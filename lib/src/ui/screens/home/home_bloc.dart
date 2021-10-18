@@ -65,9 +65,9 @@ class HomeBloc extends BaseBloc {
           mute: true,
           autoPlay: false,
           hideControls: true,
-          hideThumbnail: true,
+          hideThumbnail: false,
           disableDragSeek: true,
-          enableCaption: false,
+          enableCaption: true,
         ),
       );
       element.controller = con;
