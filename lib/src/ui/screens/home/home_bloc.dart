@@ -62,7 +62,7 @@ class HomeBloc extends BaseBloc {
       var con = YoutubePlayerController(
         initialVideoId: element.videoId,
         flags: YoutubePlayerFlags(
-          mute: true,
+          mute: false,
           autoPlay: false,
           hideControls: true,
           hideThumbnail: false,

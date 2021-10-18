@@ -237,10 +237,10 @@ class HomeScreen extends StatelessWidget {
                 // onEnterFullScreen: () {
                 //   SystemChrome.setPreferredOrientations(DeviceOrientation.values);
                 // },
-                onExitFullScreen: () {
-                  SystemChrome.setPreferredOrientations(
-                      DeviceOrientation.values);
-                },
+                // onExitFullScreen: () {
+                //   SystemChrome.setPreferredOrientations(
+                //       DeviceOrientation.values);
+                // },
                 player: YoutubePlayer(
                   controller: post.controller,
                   showVideoProgressIndicator: false,
