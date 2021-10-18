@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:studing_test_project/src/model/constants/Routers.dart';
 import 'package:studing_test_project/src/model/repository/repository.dart';
 import 'package:studing_test_project/src/model/repository/repository_impl.dart';
+import 'package:studing_test_project/src/model/web_apis/web_apis.dart';
+import 'package:studing_test_project/src/model/web_apis/web_apis_impl.dart';
 import 'package:studing_test_project/src/ui/screens/home/home_screen.dart';
 import 'package:studing_test_project/src/ui/screens/splash/splash_screen.dart';
 import 'package:studing_test_project/src/ui/screens/web_viewer/web_viewer_screen.dart';
@@ -20,6 +22,7 @@ class App extends StatefulWidget {
 }
 
 class _App extends State<App> {
+  late WebApis _webApis;
   late Repository _repository;
 
   @override
@@ -55,6 +58,7 @@ class _App extends State<App> {
   }
 
   void _prepareSync() {
-    _repository = RepositoryImpl();
+    _webApis = WebApisImpl();
+    _repository = RepositoryImpl(_webApis);
   }
 }

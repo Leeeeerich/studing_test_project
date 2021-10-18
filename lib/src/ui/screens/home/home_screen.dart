@@ -1,120 +1,128 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:studing_test_project/src/model/constants/Routers.dart';
 import 'package:studing_test_project/src/model/models/args.dart';
 import 'package:studing_test_project/src/model/models/carousel_post/carousel_post.dart';
 import 'package:studing_test_project/src/model/models/carousel_post/carousel_video.dart';
+import 'package:studing_test_project/src/ui/screens/home/carousel_states.dart';
 import 'package:studing_test_project/src/ui/screens/home/home_view_model.dart';
 import 'package:studing_test_project/src/ui/ui_extensions.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import 'home_bloc.dart';
 
-class HomeScreen extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() => _HomeScreen();
-}
-
-class _HomeScreen extends State<HomeScreen> {
-  final CarouselController _controller = CarouselController();
-  final CarouselController _controllerPosts = CarouselController();
-
-  int _current = 0;
-  int _currentPosts = 0;
-
-  late double _screenWidth;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
+class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    _screenWidth = MediaQuery.of(context).size.width;
     return ChangeNotifierProvider(
       create: (_) => HomeViewModel(Provider.of(context, listen: false)),
       builder: (context, child) {
         var bloc = HomeBloc(Provider.of<HomeViewModel>(context));
         bloc.loadPosts();
         return Scaffold(
-          appBar: AppBar(),
-          body: Column(
-            children: [
-              const SizedBox(height: 16),
-              StreamBuilder<List<VideoPost>>(
-                  stream: bloc.videoFirstCarousel,
-                  builder: (context, data) {
-                    return _showVideoCarouselOrProgress(
-                        data, _controller, _current, (index, reason) {
-                      setState(() {
-                        _current = index;
-                      });
-                    });
-                  }),
-              const SizedBox(height: 16),
-              // StreamBuilder(
-              //     stream: bloc.videoSecondCarousel,
-              //     builder: (context, data) {
-              //       return _showVideoCarouselOrProgress(data);
-              //     }),
-              // const SizedBox(height: 16),
-              StreamBuilder<List<ImagePost>>(
-                stream: bloc.imageCarousel,
-                builder: (context, data) {
-                  if (data.data != null) {
-                    return _getImgPosts(data.data!);
-                  } else {
-                    return _getCarouselProgress();
-                  }
-                },
+          appBar: AppBar(title: Text("Test App")),
+          body: Scrollbar(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+                  StreamBuilder<CarouselState>(
+                      stream: bloc.videoFirstCarousel,
+                      initialData: CarouselState.LOADING_DATA,
+                      builder: (context, data) {
+                        print("List size = ${bloc.firstVideoList.length}");
+                        return _carouselStates(
+                          data.data!,
+                          _getVideoPosts(
+                            context,
+                            bloc,
+                            bloc.firstVideoList.toList(),
+                            bloc.firstVideoPostsCarouselCon,
+                            bloc.currentFirstVideoCarouselPage,
+                            bloc.firstVideoCarouselScrollingListener,
+                            bloc.firstVideoCarouselPageChangedListener,
+                          ),
+                        );
+                      }),
+                  const SizedBox(height: 16),
+                  StreamBuilder<CarouselState>(
+                      stream: bloc.videoSecondCarousel,
+                      initialData: CarouselState.LOADING_DATA,
+                      builder: (context, data) {
+                        return _carouselStates(
+                          data.data!,
+                          _getVideoPosts(
+                            context,
+                            bloc,
+                            bloc.secondVideoList.toList(),
+                            bloc.secondVideoPostsCarouselCon,
+                            bloc.currentSecondVideoCarouselPage,
+                            bloc.secondVideoCarouselScrollingListener,
+                            bloc.secondVideoCarouselPageChangedListener,
+                          ),
+                        );
+                      }),
+                  const SizedBox(height: 16),
+                  StreamBuilder<List<ImagePost>>(
+                    stream: bloc.imageCarousel,
+                    builder: (context, data) {
+                      if (data.data != null) {
+                        return _getImgPosts(bloc, data.data!);
+                      } else {
+                        return _getCarouselProgress();
+                      }
+                    },
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _showVideoCarouselOrProgress(
-    dynamic data,
-    CarouselController controller,
-    int index,
-    Function(int, CarouselPageChangedReason) onPageChanged,
-  ) {
-    if (data.data != null) {
-      return _getVideoPosts(data.data!, controller, index, onPageChanged);
-    } else {
-      return _getCarouselProgress();
+  Widget _carouselStates(CarouselState state, Widget child) {
+    print("State = $state");
+    switch (state) {
+      case CarouselState.SCROLLED:
+        return child;
+      case CarouselState.SCROLLING:
+        return child;
+      case CarouselState.LOADING_DATA:
+        return _getCarouselProgress();
+      case CarouselState.ERROR:
+        return Center(
+            child: Text("Sorry! There were problems during the download."));
+      case CarouselState.NO_DATA:
+        return const SizedBox();
     }
   }
 
-  Widget _getImgPosts(List<ImagePost> items) {
+  Widget _getImgPosts(
+      BuildContext context, HomeBloc bloc, List<ImagePost> items) {
     return CarouselSlider.builder(
       itemBuilder: (context, index, realIndex) {
-        return _getImgContainer(items[realIndex]);
+        return _getImgContainer(context, items[realIndex]);
       },
       itemCount: items.length,
-      carouselController: _controllerPosts,
+      carouselController: bloc.imagePostsCarouselCon,
       options: CarouselOptions(
         aspectRatio: 1.5,
         viewportFraction: 0.7,
         autoPlay: false,
         enableInfiniteScroll: false,
         enlargeCenterPage: false,
-        onPageChanged: (index, reason) {
-          setState(() {
-            _currentPosts = index;
-          });
-        },
+        onPageChanged: (index, reason) {},
       ),
     );
   }
 
-  Widget _getImgContainer(ImagePost post) {
+  Widget _getImgContainer(BuildContext context, ImagePost post) {
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(context, Routes.WEB_VIEWER,
@@ -162,22 +170,28 @@ class _HomeScreen extends State<HomeScreen> {
   }
 
   Widget _getVideoPosts(
+    BuildContext context,
+    HomeBloc bloc,
     List<VideoPost> items,
     CarouselController controller,
-    int currentIndex,
-    Function(int, CarouselPageChangedReason) onPageChanged,
+    int currentPage,
+    Function(double?) onScrollListener,
+    Function(int index, CarouselPageChangedReason reason) onPageChangedListener,
   ) {
     return Column(
       children: [
         CarouselSlider(
-          items: items.map((e) => _getVideoContainer(e)).toList(),
+          items: items.map((e) => _getVideoContainer(bloc, e)).toList(),
           carouselController: controller,
           options: CarouselOptions(
-              autoPlay: false,
-              enableInfiniteScroll: false,
-              enlargeCenterPage: false,
-              aspectRatio: 24 / 9,
-              onPageChanged: onPageChanged),
+            autoPlay: false,
+            enableInfiniteScroll: false,
+            enlargeCenterPage: false,
+            aspectRatio: 24 / 9,
+            initialPage: currentPage,
+            onScrolled: onScrollListener,
+            onPageChanged: onPageChangedListener,
+          ),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -189,11 +203,12 @@ class _HomeScreen extends State<HomeScreen> {
                 height: 12.0,
                 margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
                 decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: (Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.deepOrangeAccent)
-                        .withOpacity(currentIndex == entry.key ? 0.9 : 0.4)),
+                  shape: BoxShape.circle,
+                  color: (Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : Colors.deepOrangeAccent)
+                      .withOpacity(currentPage == entry.key ? 0.9 : 0.4),
+                ),
               ),
             );
           }).toList(),
@@ -202,58 +217,32 @@ class _HomeScreen extends State<HomeScreen> {
     );
   }
 
-  Widget _getVideoContainer(VideoPost post) {
+  Widget _getVideoContainer(HomeBloc bloc, VideoPost post) {
     return Container(
-      width: _screenWidth,
       padding: EdgeInsets.symmetric(horizontal: 4),
       child: Stack(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            // child: AspectRatio(
-            //   aspectRatio: 24 / 9,
-            child:
-                // YoutubePlayerControllerProvider(
-                //   controller: post.controller,
-                //   child: LayoutBuilder(
-                //     builder: (context, constraints) {
-                //       return Stack(
-                //         children: [
-                //           SizedBox(
-                //             width: constraints.maxWidth,
-                //             child: YoutubePlayerIFrame(
-                //               controller: post.controller,
-                //               gestureRecognizers: null,
-                //             ),
-                //           ),
-                //         ],
-                //       );
-                //     },
-                //   ),
-                // ),
-
-                YoutubePlayerBuilder(
-                    player: YoutubePlayer(
-                      controller: post.controller,
-                      showVideoProgressIndicator: false,
-                      onReady: () {
-                        // post.controller.addListener(() {});
-                      },
-                    ),
-                    builder: (context, player) => Scaffold(
-                          body: IconButton(
-                              icon: Icon(Icons.play_arrow_rounded),
-                              color: Colors.black,
-                              onPressed: () {
-                                // cc.play();
-                                // post.controller.value.isPlaying
-                                //     ? post.controller.pause()
-                                //     : post.controller.play();
-                              }),
-                        )),
+            child: YoutubePlayerBuilder(
+              // onEnterFullScreen: () {
+              //   SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+              // },
+              onExitFullScreen: () {
+                SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+              },
+              player: YoutubePlayer(
+                controller: post.controller,
+                showVideoProgressIndicator: false,
+                onReady: () {},
+              ),
+              builder: (context, player) => Scaffold(
+                body: const SizedBox(),
+              ),
+            ),
           ),
           Visibility(
-            visible: !post.controller.value.isPlaying,
+            visible: post.isShowInfo,
             child: Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -303,20 +292,26 @@ class _HomeScreen extends State<HomeScreen> {
               ),
             ),
           ),
-          Center(
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
+          Visibility(
+            visible: post.isShowInfo,
+            child: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
                   iconSize: 48,
                   icon: Icon(Icons.play_arrow),
                   color: Colors.black,
                   onPressed: () {
-                    post.controller.value.isPlaying
-                        ? post.controller.pause()
-                        : post.controller.play();
-                  }),
+                    if (post.controller.value.isReady) {
+                      bloc.playStop(post);
+                    } else {
+                      "Video not ready yet!".showToast();
+                    }
+                  },
+                ),
+              ),
             ),
           ),
         ],

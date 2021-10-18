@@ -8,6 +8,8 @@ class VideoPost {
   String description;
   String botText;
 
+  bool isShowInfo = true;
+
   late YoutubePlayerController controller;
 
   VideoPost(
@@ -17,4 +19,14 @@ class VideoPost {
     this.description,
     this.botText,
   );
+
+  void startPlay() {
+    isShowInfo = false;
+    controller.play();
+  }
+
+  void stopPlay() {
+    controller.pause();
+    isShowInfo = true;
+  }
 }

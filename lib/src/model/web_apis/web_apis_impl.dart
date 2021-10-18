@@ -1,24 +1,24 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:studing_test_project/src/model/models/carousel_post/carousel_post.dart';
 import 'package:studing_test_project/src/model/models/carousel_post/carousel_video.dart';
-import 'package:studing_test_project/src/model/repository/repository.dart';
+import 'package:studing_test_project/src/model/web_apis/web_apis.dart';
 
-class HomeViewModel extends ChangeNotifier {
-  final Repository _repository;
+class WebApisImpl extends WebApis {
+  Future<List<VideoPost>> loadFirstVideoList() async {
+    await Future.delayed(Duration(seconds: 6));
+    return videoPosts;
+  }
 
-  HomeViewModel(this._repository);
-
-  Future<List<VideoPost>> loadFirstVideoList() =>
-      _repository.loadFirstVideoList();
-
-  Future<List<VideoPost>> loadSecondVideoList() =>
-      _repository.loadSecondVideoList();
+  Future<List<VideoPost>> loadSecondVideoList() async {
+    await Future.delayed(Duration(seconds: 2));
+    return videoPosts2;
+  }
 
   void loadImageList(StreamSink sink) async {
-    _repository.loadImageList(sink);
+    await Future.delayed(Duration(seconds: 4));
+    sink.add(img1List);
   }
 }
 
