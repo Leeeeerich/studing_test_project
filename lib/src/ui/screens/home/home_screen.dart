@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:studing_test_project/src/model/constants/Routers.dart';
 import 'package:studing_test_project/src/model/models/args.dart';
 import 'package:studing_test_project/src/model/models/carousel_post/carousel_post.dart';
@@ -24,9 +27,7 @@ class _HomeScreen extends State<HomeScreen> {
   late HomeBloc bloc;
   bool initialized = false;
 
-  YoutubePlayerController _fullScreen =
-      YoutubePlayerController(initialVideoId: "Fm7OR6E23Lo");
-  bool _isFullScreen = false;
+  StreamController<YoutubePlayerController> streamUI = BehaviorSubject();
 
   @override
   Widget build(BuildContext context) {
@@ -43,25 +44,36 @@ class _HomeScreen extends State<HomeScreen> {
   }
 
   Widget _getPlayerScreen() {
-    return YoutubePlayerBuilder(
-        onEnterFullScreen: () {
-          print("onEnterFullScreen");
-          SystemChrome.setPreferredOrientations([
-            DeviceOrientation.landscapeLeft,
-            DeviceOrientation.landscapeRight,
-          ]);
-        },
-        onExitFullScreen: () {
-          print("onExitFullScreen");
-          _isFullScreen = false;
-          SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-        },
-        player: YoutubePlayer(
-          controller: _fullScreen,
-          showVideoProgressIndicator: true,
-          onReady: () {},
-        ),
-        builder: (context, player) => _getBaseScreen());
+    return StreamBuilder<YoutubePlayerController>(
+        stream: streamUI.stream,
+        builder: (context, data) {
+          if (!data.hasData) {
+            return _getBaseScreen();
+          } else {
+            return YoutubePlayerBuilder(
+                onEnterFullScreen: () {
+                  print("onEnterFullScreen");
+                  SystemChrome.setPreferredOrientations([
+                    DeviceOrientation.landscapeLeft,
+                    DeviceOrientation.landscapeRight,
+                  ]);
+                },
+                onExitFullScreen: () {
+                  print("onExitFullScreen");
+                  SystemChrome.setPreferredOrientations(
+                      DeviceOrientation.values);
+                },
+                player: YoutubePlayer(
+                  controller: data.data!,
+                  showVideoProgressIndicator: true,
+                  onReady: () async {
+                    // await Future.delayed(Duration(seconds: 2));
+                    // data.data?.play();
+                  },
+                ),
+                builder: (context, player) => _getBaseScreen());
+          }
+        });
   }
 
   Widget _getBaseScreen() {
@@ -333,17 +345,25 @@ class _HomeScreen extends State<HomeScreen> {
               ),
             ),
           ),
-          IconButton(
-            onPressed: () {
-              setState(() {
-                _fullScreen = post.controller;
-                _isFullScreen = true;
-              });
-              _fullScreen.toggleFullScreenMode();
-            },
-            icon: Icon(Icons.aspect_ratio_outlined),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Visibility(
+              visible: !post.isShowInfo,
+              child: IconButton(
+                onPressed: () {
+                  var con = YoutubePlayerController(
+                    initialVideoId: post.videoId,
+                    flags: YoutubePlayerFlags(
+                        autoPlay: true,
+                        startAt: post.controller.value.position.inSeconds),
+                  );
+                  con.toggleFullScreenMode();
+                  streamUI.sink.add(con);
+                },
+                icon: Icon(Icons.aspect_ratio_outlined),
+              ),
+            ),
           ),
-          // FullScreenButton(controller: post.controller, color: Colors.black),
         ],
       ),
     );
@@ -356,5 +376,11 @@ class _HomeScreen extends State<HomeScreen> {
         child: SpinKitCubeGrid(color: Colors.blueAccent),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    streamUI.close();
+    super.dispose();
   }
 }
