@@ -15,74 +15,114 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import 'home_bloc.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _HomeScreen();
+}
+
+class _HomeScreen extends State<HomeScreen> {
+  late HomeBloc bloc;
+  bool initialized = false;
+
+  YoutubePlayerController _fullScreen =
+      YoutubePlayerController(initialVideoId: "Fm7OR6E23Lo");
+  bool _isFullScreen = false;
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => HomeViewModel(Provider.of(context, listen: false)),
       builder: (context, child) {
-        var bloc = HomeBloc(Provider.of<HomeViewModel>(context));
-        bloc.loadPosts();
-        return Scaffold(
-          appBar: AppBar(title: Text("Test App")),
-          body: Scrollbar(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const SizedBox(height: 16),
-                  StreamBuilder<CarouselState>(
-                      stream: bloc.videoFirstCarousel,
-                      initialData: CarouselState.LOADING_DATA,
-                      builder: (context, data) {
-                        print("List size = ${bloc.firstVideoList.length}");
-                        return _carouselStates(
-                          data.data!,
-                          _getVideoPosts(
-                            context,
-                            bloc,
-                            bloc.firstVideoList.toList(),
-                            bloc.firstVideoPostsCarouselCon,
-                            bloc.currentFirstVideoCarouselPage,
-                            bloc.firstVideoCarouselScrollingListener,
-                            bloc.firstVideoCarouselPageChangedListener,
-                          ),
-                        );
-                      }),
-                  const SizedBox(height: 16),
-                  StreamBuilder<CarouselState>(
-                      stream: bloc.videoSecondCarousel,
-                      initialData: CarouselState.LOADING_DATA,
-                      builder: (context, data) {
-                        return _carouselStates(
-                          data.data!,
-                          _getVideoPosts(
-                            context,
-                            bloc,
-                            bloc.secondVideoList.toList(),
-                            bloc.secondVideoPostsCarouselCon,
-                            bloc.currentSecondVideoCarouselPage,
-                            bloc.secondVideoCarouselScrollingListener,
-                            bloc.secondVideoCarouselPageChangedListener,
-                          ),
-                        );
-                      }),
-                  const SizedBox(height: 16),
-                  StreamBuilder<List<ImagePost>>(
-                    stream: bloc.imageCarousel,
-                    builder: (context, data) {
-                      if (data.data != null) {
-                        return _getImgPosts(context, bloc, data.data!);
-                      } else {
-                        return _getCarouselProgress();
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
+        if (!initialized) {
+          bloc = HomeBloc(Provider.of<HomeViewModel>(context));
+          bloc.loadPosts();
+        }
+        return _getPlayerScreen();
       },
+    );
+  }
+
+  Widget _getPlayerScreen() {
+    return YoutubePlayerBuilder(
+        onEnterFullScreen: () {
+          print("onEnterFullScreen");
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ]);
+        },
+        onExitFullScreen: () {
+          print("onExitFullScreen");
+          _isFullScreen = false;
+          SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+        },
+        player: YoutubePlayer(
+          controller: _fullScreen,
+          showVideoProgressIndicator: true,
+          onReady: () {},
+        ),
+        builder: (context, player) => _getBaseScreen());
+  }
+
+  Widget _getBaseScreen() {
+    return Scaffold(
+      appBar: AppBar(title: Text("Test App")),
+      body: Scrollbar(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              StreamBuilder<CarouselState>(
+                  stream: bloc.videoFirstCarousel,
+                  initialData: CarouselState.LOADING_DATA,
+                  builder: (context, data) {
+                    print("List size = ${bloc.firstVideoList.length}");
+                    return _carouselStates(
+                      data.data!,
+                      _getVideoPosts(
+                        context,
+                        bloc,
+                        bloc.firstVideoList.toList(),
+                        bloc.firstVideoPostsCarouselCon,
+                        bloc.currentFirstVideoCarouselPage,
+                        bloc.firstVideoCarouselScrollingListener,
+                        bloc.firstVideoCarouselPageChangedListener,
+                      ),
+                    );
+                  }),
+              const SizedBox(height: 16),
+              StreamBuilder<CarouselState>(
+                  stream: bloc.videoSecondCarousel,
+                  initialData: CarouselState.LOADING_DATA,
+                  builder: (context, data) {
+                    return _carouselStates(
+                      data.data!,
+                      _getVideoPosts(
+                        context,
+                        bloc,
+                        bloc.secondVideoList.toList(),
+                        bloc.secondVideoPostsCarouselCon,
+                        bloc.currentSecondVideoCarouselPage,
+                        bloc.secondVideoCarouselScrollingListener,
+                        bloc.secondVideoCarouselPageChangedListener,
+                      ),
+                    );
+                  }),
+              const SizedBox(height: 16),
+              StreamBuilder<List<ImagePost>>(
+                stream: bloc.imageCarousel,
+                builder: (context, data) {
+                  if (data.data != null) {
+                    return _getImgPosts(context, bloc, data.data!);
+                  } else {
+                    return _getCarouselProgress();
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -182,7 +222,8 @@ class HomeScreen extends StatelessWidget {
     return Column(
       children: [
         CarouselSlider(
-          items: items.map((e) => _getVideoContainer(bloc, e)).toList(),
+          items:
+              items.map((e) => _getVideoContainer(context, bloc, e)).toList(),
           carouselController: controller,
           options: CarouselOptions(
             autoPlay: false,
@@ -218,92 +259,92 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _getVideoContainer(HomeBloc bloc, VideoPost post) {
-    return GestureDetector(
-      onTapUp: (details) {
-        if (post.controller.value.isReady) {
-          bloc.playStop(post);
-        } else {
-          "Video not ready yet!".showToast();
-        }
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 4),
-        child: Stack(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: YoutubePlayerBuilder(
-                // onEnterFullScreen: () {
-                //   SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-                // },
-                // onExitFullScreen: () {
-                //   SystemChrome.setPreferredOrientations(
-                //       DeviceOrientation.values);
-                // },
-                player: YoutubePlayer(
-                  controller: post.controller,
-                  showVideoProgressIndicator: false,
-                  onReady: () {},
-                ),
-                builder: (context, player) => Scaffold(
-                  body: const SizedBox(),
-                ),
-              ),
+  Widget _getVideoContainer(
+      BuildContext context, HomeBloc bloc, VideoPost post) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 4),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: YoutubePlayer(
+              controller: post.controller,
+              showVideoProgressIndicator: false,
+              onReady: () {},
             ),
-            Visibility(
-              visible: post.isShowInfo,
-              child: Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.blue, Colors.transparent],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
+          ),
+          Visibility(
+            visible: post.isShowInfo,
+            child: Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue, Colors.transparent],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    post.title,
+                    style: TextStyle(
+                      color: Colors.yellow,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      post.title,
-                      style: TextStyle(
-                        color: Colors.yellow,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        fontStyle: FontStyle.italic,
-                      ),
+                  Text(
+                    //TODO fix to two lines
+                    post.description,
+                    maxLines: 2,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  const SizedBox(),
+                  Text(
+                    post.botText,
+                    style: TextStyle(
+                      color: Colors.blueAccent,
+                      backgroundColor: Colors.yellow,
+                      fontSize: 20,
+                      wordSpacing: 2,
                     ),
-                    Text(
-                      //TODO fix to two lines
-                      post.description,
-                      maxLines: 2,
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    const SizedBox(),
-                    Text(
-                      post.botText,
-                      style: TextStyle(
-                        color: Colors.blueAccent,
-                        backgroundColor: Colors.yellow,
-                        fontSize: 20,
-                        wordSpacing: 2,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            Visibility(
-              visible: post.isShowInfo,
-              child: Center(
-                child: Icon(Icons.play_arrow, color: Colors.black, size: 48),
+          ),
+          Visibility(
+            visible: post.isShowInfo,
+            child: Center(
+              child: IconButton(
+                onPressed: () {
+                  if (post.controller.value.isReady) {
+                    bloc.playStop(post);
+                  } else {
+                    "Video not ready yet!".showToast();
+                  }
+                },
+                icon: Icon(Icons.play_arrow, color: Colors.black, size: 48),
               ),
             ),
-          ],
-        ),
+          ),
+          IconButton(
+            onPressed: () {
+              setState(() {
+                _fullScreen = post.controller;
+                _isFullScreen = true;
+              });
+              _fullScreen.toggleFullScreenMode();
+            },
+            icon: Icon(Icons.aspect_ratio_outlined),
+          ),
+          // FullScreenButton(controller: post.controller, color: Colors.black),
+        ],
       ),
     );
   }
