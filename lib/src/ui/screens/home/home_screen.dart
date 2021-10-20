@@ -273,99 +273,99 @@ class _HomeScreen extends State<HomeScreen> {
 
   Widget _getVideoContainer(
       BuildContext context, HomeBloc bloc, VideoPost post) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 4),
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: YoutubePlayer(
-              controller: post.controller,
-              showVideoProgressIndicator: false,
-              onReady: () {},
+    return GestureDetector(
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 4),
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: YoutubePlayer(
+                controller: post.controller,
+                showVideoProgressIndicator: false,
+                onReady: () {},
+              ),
             ),
-          ),
-          Visibility(
-            visible: post.isShowInfo,
-            child: Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blue, Colors.transparent],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
+            Visibility(
+              visible: post.isShowInfo,
+              child: Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blue, Colors.transparent],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    post.title,
-                    style: TextStyle(
-                      color: Colors.yellow,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      fontStyle: FontStyle.italic,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      post.title,
+                      style: TextStyle(
+                        color: Colors.yellow,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
-                  ),
-                  Text(
-                    //TODO fix to two lines
-                    post.description,
-                    maxLines: 2,
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  const SizedBox(),
-                  Text(
-                    post.botText,
-                    style: TextStyle(
-                      color: Colors.blueAccent,
-                      backgroundColor: Colors.yellow,
-                      fontSize: 20,
-                      wordSpacing: 2,
+                    Text(
+                      //TODO fix to two lines
+                      post.description,
+                      maxLines: 2,
+                      style: TextStyle(color: Colors.white),
                     ),
-                  ),
-                ],
+                    const SizedBox(),
+                    Text(
+                      post.botText,
+                      style: TextStyle(
+                        color: Colors.blueAccent,
+                        backgroundColor: Colors.yellow,
+                        fontSize: 20,
+                        wordSpacing: 2,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          Visibility(
-            visible: post.isShowInfo,
-            child: Center(
-              child: IconButton(
-                onPressed: () {
-                  if (post.controller.value.isReady) {
-                    bloc.playStop(post);
-                  } else {
-                    "Video not ready yet!".showToast();
-                  }
-                },
-                icon: Icon(Icons.play_arrow, color: Colors.black, size: 48),
+            Visibility(
+              visible: post.isShowInfo,
+              child: Center(
+                child: Icon(Icons.play_arrow, color: Colors.black, size: 48),
               ),
             ),
-          ),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Visibility(
-              visible: !post.isShowInfo,
-              child: IconButton(
-                onPressed: () {
-                  var con = YoutubePlayerController(
-                    initialVideoId: post.videoId,
-                    flags: YoutubePlayerFlags(
-                        autoPlay: true,
-                        startAt: post.controller.value.position.inSeconds),
-                  );
-                  con.toggleFullScreenMode();
-                  streamUI.sink.add(con);
-                },
-                icon: Icon(Icons.aspect_ratio_outlined),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Visibility(
+                visible: !post.isShowInfo,
+                child: IconButton(
+                  onPressed: () {
+                    var con = YoutubePlayerController(
+                      initialVideoId: post.videoId,
+                      flags: YoutubePlayerFlags(
+                          autoPlay: true,
+                          startAt: post.controller.value.position.inSeconds),
+                    );
+                    con.toggleFullScreenMode();
+                    streamUI.sink.add(con);
+                  },
+                  icon: Icon(Icons.aspect_ratio_outlined),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+      onTapUp: (details) {
+        if (post.controller.value.isReady) {
+          bloc.playStop(post);
+        } else {
+          "Video not ready yet!".showToast();
+        }
+      },
     );
   }
 
