@@ -24,13 +24,13 @@ class WebApisImpl extends WebApis {
 
 final List<ImagePost> img1List = [
   ImagePost(
-      'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg',
+      'https://www.intelligent.com/wp-content/uploads/2013/06/chapter_pic02-1-768x454.jpg',
       DateTime.now(),
       Icons.directions_run,
       "#Qwerty",
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec consectetur interdum maximus. Phasellus ut ligula orci. Fusce eget lobortis neque. Morbi accumsan nibh faucibus velit gravida, dapibus maximus leo feugiat."),
   ImagePost(
-      'https://p.bigstockphoto.com/GeFvQkBbSLaMdpKXF1Zv_bigstock-Aerial-View-Of-Blue-Lakes-And--227291596.jpg',
+      'https://www.intelligent.com/wp-content/uploads/2019/07/planner.jpg',
       DateTime.now(),
       Icons.menu_book_sharp,
       "#Qwerty",

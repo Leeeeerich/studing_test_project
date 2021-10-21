@@ -178,7 +178,7 @@ class _HomeScreen extends State<HomeScreen> {
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(context, Routes.WEB_VIEWER,
-            arguments: WebLink("https://www.flutter.dev"));
+            arguments: WebLink("https://www.intelligent.com/create-a-study-plan/"));
       },
       child: Card(
         elevation: 4,
