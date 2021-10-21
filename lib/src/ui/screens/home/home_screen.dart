@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
@@ -164,7 +165,7 @@ class _HomeScreen extends State<HomeScreen> {
       itemCount: items.length,
       carouselController: bloc.imagePostsCarouselCon,
       options: CarouselOptions(
-        aspectRatio: 1.5,
+        aspectRatio: Platform.isIOS ? 1.4 :  1.5,
         viewportFraction: 0.7,
         autoPlay: false,
         enableInfiniteScroll: false,
@@ -350,6 +351,7 @@ class _HomeScreen extends State<HomeScreen> {
                           startAt: post.controller.value.position.inSeconds),
                     );
                     con.toggleFullScreenMode();
+                    bloc.playStop(post);
                     streamUI.sink.add(con);
                   },
                   icon: Icon(Icons.aspect_ratio_outlined),
@@ -360,6 +362,9 @@ class _HomeScreen extends State<HomeScreen> {
         ),
       ),
       onTapUp: (details) {
+        print("Play-Stop Clicked");
+        print("Play-Stop isReady = ${post.controller.value.isReady}");
+        print("Play-Stop isPlayed = ${post.controller.value.isPlaying}");
         if (post.controller.value.isReady) {
           bloc.playStop(post);
         } else {
@@ -368,6 +373,8 @@ class _HomeScreen extends State<HomeScreen> {
       },
     );
   }
+
+  YoutubePlayerController? f;
 
   Widget _getCarouselProgress() {
     return Center(
